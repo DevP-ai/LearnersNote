@@ -63,9 +63,12 @@ class RegisterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         authViewmodel.userResponseLiveData.observe(viewLifecycleOwner, Observer {
+            binding.progressBar.isVisible = false
             when (it) {
                 is NetworkResult.Success -> {
+                    //Token
                     findNavController().navigate(R.id.action_registerFragment_to_mainFragment)
+
                 }
 
                 is NetworkResult.Error -> {
