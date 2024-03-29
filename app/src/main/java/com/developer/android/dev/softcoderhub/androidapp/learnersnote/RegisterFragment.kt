@@ -17,7 +17,6 @@ import com.developer.android.dev.softcoderhub.androidapp.learnersnote.models.Use
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.utils.NetworkResult
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.viewmodel.AuthViewmodel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -42,19 +41,6 @@ class RegisterFragment : Fragment() {
 //        return view
 
 
-        binding.btnSignUp.setOnClickListener {
-            lifecycleScope.launch {
-                try {
-                    authViewmodel.registerUser(UserRequest("dev@gmail.com", "123456", "dev"))
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Registration Failed", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-        }
-        binding.txtLogin.setOnClickListener {
-            findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
-        }
 
         return binding.root
     }
@@ -62,6 +48,44 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        binding.btnSignUp.setOnClickListener {
+            val validation = validateUserInput()
+            if(validation.first){
+//                val userRequest = getUserRequest()
+                lifecycleScope.launch {
+                    authViewmodel.registerUser(getUserRequest())
+                }
+            }
+            else{
+                binding.txtError.text = validation.second
+            }
+
+        }
+
+        binding.txtLogin.setOnClickListener {
+            findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+        }
+
+        bindObservers()
+    }
+
+    private fun validateUserInput(): Pair<Boolean, String> {
+        val userRequest = getUserRequest()
+        return authViewmodel.validateCredential(userRequest.email,userRequest.username,userRequest.password,false)
+    }
+
+    private fun getUserRequest():UserRequest{
+        return binding.run {
+            UserRequest(
+                txtEmail.text.toString(),
+                txtPassword.text.toString(),
+                txtUsername.text.toString()
+            )
+        }
+    }
+
+    private fun bindObservers() {
         authViewmodel.userResponseLiveData.observe(viewLifecycleOwner, Observer {
             binding.progressBar.isVisible = false
             when (it) {
@@ -74,6 +98,7 @@ class RegisterFragment : Fragment() {
                 is NetworkResult.Error -> {
                     binding.txtError.text = it.message
                 }
+
                 is NetworkResult.Loading -> {
                     binding.progressBar.isVisible = true
                 }

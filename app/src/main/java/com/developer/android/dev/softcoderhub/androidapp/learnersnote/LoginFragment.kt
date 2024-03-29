@@ -5,12 +5,25 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.databinding.FragmentLoginBinding
+import com.developer.android.dev.softcoderhub.androidapp.learnersnote.models.UserRequest
+import com.developer.android.dev.softcoderhub.androidapp.learnersnote.utils.NetworkResult
+import com.developer.android.dev.softcoderhub.androidapp.learnersnote.viewmodel.AuthViewmodel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class LoginFragment : Fragment() {
     private var _binding:FragmentLoginBinding?=null
     private val binding get() = _binding!!
+
+    private val authViewmodel by viewModels<AuthViewmodel>()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,13 +38,60 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnLogin.setOnClickListener {
-            findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            val validation = validateUserInput()
+            if(validation.first){
+//                val userRequest = getUserRequest()
+                lifecycleScope.launch {
+                    authViewmodel.loginUser(getUserRequest())
+                }
+            }else{
+                binding.txtError.text = validation.second
+            }
+
         }
 
         binding.txtSignUp.setOnClickListener {
-            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+           findNavController().popBackStack()
         }
+
+        bindObservers()
     }
+
+    private fun validateUserInput():Pair<Boolean,String>{
+        val userRequest = getUserRequest()
+        return authViewmodel.validateCredential(userRequest.email,userRequest.username,userRequest.password,true)
+    }
+
+    private fun getUserRequest(): UserRequest {
+        return binding.run {
+            UserRequest(
+                txtEmail.text.toString(),
+                txtPassword.text.toString(),
+                ""
+            )
+        }
+
+    }
+    private fun bindObservers() {
+        authViewmodel.userResponseLiveData.observe(viewLifecycleOwner, Observer {
+            binding.progressBar.isVisible = false
+            when(it){
+                is NetworkResult.Success->{
+                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+                }
+                is NetworkResult.Error ->{
+                    binding.txtError.text = it.message
+                }
+
+                is NetworkResult.Loading ->{
+                    binding.progressBar.isVisible = true
+                }
+            }
+        })
+    }
+
+
+
 
     override fun onDestroy() {
         super.onDestroy()
