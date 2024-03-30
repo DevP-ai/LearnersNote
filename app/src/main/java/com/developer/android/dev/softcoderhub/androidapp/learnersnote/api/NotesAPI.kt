@@ -24,4 +24,5 @@ interface NotesAPI {
 
     @DELETE("/note/{nodeId}")
     suspend fun deleteNote(@Path("noteId") noteId: String):Response<NoteResponse>
+
 }

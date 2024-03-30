@@ -15,9 +15,11 @@ import androidx.navigation.fragment.findNavController
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.databinding.FragmentRegisterBinding
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.models.UserRequest
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.utils.NetworkResult
+import com.developer.android.dev.softcoderhub.androidapp.learnersnote.utils.TokenManager
 import com.developer.android.dev.softcoderhub.androidapp.learnersnote.viewmodel.AuthViewmodel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
@@ -26,6 +28,8 @@ class RegisterFragment : Fragment() {
 
     private val authViewmodel by viewModels<AuthViewmodel>()
 
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,8 +43,10 @@ class RegisterFragment : Fragment() {
 //            findNavController().navigate(R.id.action_registerFragment_to_loginFragment);
 //        }
 //        return view
-
-
+//
+         if(tokenManager.getToken()!=null){
+             findNavController().navigate(R.id.action_registerFragment_to_mainFragment)
+         }
 
         return binding.root
     }
@@ -52,7 +58,6 @@ class RegisterFragment : Fragment() {
         binding.btnSignUp.setOnClickListener {
             val validation = validateUserInput()
             if(validation.first){
-//                val userRequest = getUserRequest()
                 lifecycleScope.launch {
                     authViewmodel.registerUser(getUserRequest())
                 }
@@ -90,7 +95,7 @@ class RegisterFragment : Fragment() {
             binding.progressBar.isVisible = false
             when (it) {
                 is NetworkResult.Success -> {
-                    //Token
+                    tokenManager.saveToken(it.data!!.token)
                     findNavController().navigate(R.id.action_registerFragment_to_mainFragment)
 
                 }
