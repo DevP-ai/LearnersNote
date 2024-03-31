@@ -13,10 +13,11 @@ import javax.inject.Inject
 class NoteRepository @Inject constructor(private val notesAPI: NotesAPI) {
 
     private val _notesLiveData = MutableLiveData<NetworkResult<List<NoteResponse>>>()
-    val notesLiveData : LiveData<NetworkResult<List<NoteResponse>>> = _notesLiveData
+    val notesLiveData get() = _notesLiveData
 
-    private val _statusLiveData = MutableLiveData<NetworkResult<String>>()
-    val statusLiveData : LiveData<NetworkResult<String>> = _statusLiveData
+    private val _statusLiveData = MutableLiveData<NetworkResult<Pair<Boolean, String>>>()
+    val statusLiveData get() = _statusLiveData
+
 
 
     suspend fun getNotes(){
@@ -47,7 +48,7 @@ class NoteRepository @Inject constructor(private val notesAPI: NotesAPI) {
 
     private fun handleCUDResponse(response: Response<NoteResponse>,message:String){
         if(response.isSuccessful && response.body() != null){
-            _statusLiveData.postValue(NetworkResult.Success(message))
+            _statusLiveData.postValue(NetworkResult.Success(Pair(true,message)))
         }else{
             _statusLiveData.postValue(NetworkResult.Error("Something went wrong"))
         }
