@@ -1,6 +1,6 @@
 API Used : https://github.com/DevP-ai/NOTES_API
 
-# ScrenShots
+# ScreenShots
 
 <img src="https://github.com/DevP-ai/LearnersNote/assets/107491760/fceec6f1-c373-420a-a941-5fd2c59b739d" width="250">
 <img src="https://github.com/DevP-ai/LearnersNote/assets/107491760/baf60186-85cd-4710-9431-33b8973d2601" width="250">
